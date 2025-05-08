@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hunted_frontend/pages/lobby.dart';
 
 class CreateLobby extends StatefulWidget {
   const CreateLobby({super.key});
@@ -27,7 +32,20 @@ class _CreateLobbyState extends State<CreateLobby> {
           ),
           const SizedBox(height: 50),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
+              final response = await http.post(
+                Uri.parse('http://localhost:3000/api/create-lobby'),
+                headers: {'Content-Type': 'application/json'},
+                body: jsonEncode({'name': lobbyNameController.text}),
+              );
+
+              if (response.statusCode == 200) {
+                final lobby = jsonDecode(response.body);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => Lobby(lobby: lobby, isHost: true)));
+              } else {
+                Fluttertoast.showToast(msg: 'Failed to create lobby', toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.CENTER, timeInSecForIosWeb: 1, backgroundColor: Colors.red, textColor: Colors.white, fontSize: 16.0);
+              }
+
               //Navigator.push(context, MaterialPageRoute(builder: (context) => const Lobby()));
               debugPrint(lobbyNameController.text);
             },
