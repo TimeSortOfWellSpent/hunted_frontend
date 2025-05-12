@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:hunted_frontend/pages/game_scene.dart';
 class Lobby extends StatefulWidget {
   final Map<String, dynamic> lobby;
   final bool isHost;
@@ -21,7 +22,12 @@ class _LobbyState extends State<Lobby> {
     super.initState();
     Timer.periodic(const Duration(seconds: 1), (timer) {
       updateCurrentPlayers();
+      getGameState();
     });
+  }
+
+  Future<void> getGameState() async {
+    
   }
 
   Future<void> updateCurrentPlayers() async {
@@ -61,7 +67,7 @@ class _LobbyState extends State<Lobby> {
         visible: widget.isHost,
         child: FloatingActionButton(
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const GameScreen()));
+            //Navigator.push(context, MaterialPageRoute(builder: (context) => const GameScreen(lobby: ,)));
             http.post(
               Uri.parse('http://localhost:3000/api/lobby/${widget.lobby['id']}/start'),
             );
