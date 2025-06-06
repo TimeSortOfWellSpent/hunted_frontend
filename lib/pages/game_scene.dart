@@ -44,7 +44,7 @@ class _GameSceneState extends State<GameScene> {
   }
 
   void _startGameStateUpdates() {
-    _gameStateTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+    _gameStateTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (!mounted) return;
       _fetchGameState();
     });

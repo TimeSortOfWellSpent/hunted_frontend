@@ -1,4 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Camera Permission -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Internet Permission -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Storage Permissions -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <application
         android:label="Hunted"
         android:name="${applicationName}"

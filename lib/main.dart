@@ -14,6 +14,7 @@ import 'dart:io';
 import 'services/api_service.dart';
 import 'pages/lobby.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -129,16 +130,31 @@ class UserState extends ChangeNotifier {
 }
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  final userState = UserState();
-  await userState.initialize();
-  
-  runApp(
-    ChangeNotifierProvider.value(
-      value: userState,
-      child: const MyApp(),
-    ),
-  );
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    final userState = UserState();
+    await userState.initialize();
+    
+    runApp(
+      ChangeNotifierProvider.value(
+        value: userState,
+        child: const MyApp(),
+      ),
+    );
+  } catch (e, stackTrace) {
+    debugPrint('Error during initialization: $e');
+    debugPrint(stackTrace.toString());
+    // Show a basic error screen instead of crashing
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Text('Failed to initialize app: $e'),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -178,29 +194,47 @@ class _UsernameScreenState extends State<UsernameScreen> {
   final _picker = ImagePicker();
 
   Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 100,
-      maxWidth: 1000,
-      maxHeight: 1000,
-      preferredCameraDevice: CameraDevice.front,
-    );
-    
-    if (pickedFile != null) {
-      final file = File(pickedFile.path);
-      final extension = pickedFile.path.split('.').last.toLowerCase();
+    // Request camera permission first
+    final status = await Permission.camera.request();
+    if (status.isDenied) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Camera permission is required to take a photo')),
+      );
+      return;
+    }
+
+    try {
+      final pickedFile = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 100,
+        maxWidth: 1000,
+        maxHeight: 1000,
+        preferredCameraDevice: CameraDevice.front,
+      );
       
-      if (extension != 'jpg' && extension != 'jpeg' && extension != 'png') {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a JPG or PNG image')),
-        );
-        return;
+      if (pickedFile != null) {
+        final file = File(pickedFile.path);
+        final extension = pickedFile.path.split('.').last.toLowerCase();
+        
+        if (extension != 'jpg' && extension != 'jpeg' && extension != 'png') {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select a JPG or PNG image')),
+          );
+          return;
+        }
+        
+        setState(() {
+          _image = file;
+        });
       }
-      
-      setState(() {
-        _image = file;
-      });
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error picking image: $e')),
+      );
     }
   }
 
